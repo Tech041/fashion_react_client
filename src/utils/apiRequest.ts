@@ -23,11 +23,12 @@ apiRequest.interceptors.request.use(
 apiRequest.interceptors.response.use(
   (response) => response,
   (error) => {
+  
     if (error.response) {
       const { status, data } = error.response;
 
       // Handle token expiration
-      if (status === 401 && data?.message === "Token expired") {
+      if (status === 401 && data?.error === "Token expired") {
         useAuthStore.getState().logout();
         window.location.href = "/sign-in";
       }
