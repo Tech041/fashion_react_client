@@ -1,7 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
 import { useAuthStore } from "../store/authStore";
 import { toast } from "sonner";
-import { signInService } from "../services/auth";
+import { signInService, signUpService } from "../services/auth";
 
 export const useSignIn = () => {
   const setToken = useAuthStore((state) => state.setToken);
@@ -12,12 +12,33 @@ export const useSignIn = () => {
     onSuccess: (data) => {
       setToken(data.token); // store JWT in Zustand
       toast.success(data.message);
-      console.log("Login", data);
-      window.location.href = "/dashboard"; // redirect after login
+      window.location.href = "/shop"; // redirect after login
     },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onError: (error: any) => {
       toast.error(error.response?.data?.message || "Login failed");
+    },
+  });
+};
+
+export const useSignUp = () => {
+  return useMutation({
+    mutationFn: ({
+      name,
+      email,
+      password,
+    }: {
+      name: string;
+      email: string;
+      password: string;
+    }) => signUpService(name, email, password),
+    onSuccess: (data) => {
+      toast.success(data.message);
+      window.location.href = "/sign-in"; // redirect after register
+    },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || "Registeration failed");
     },
   });
 };

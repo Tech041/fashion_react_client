@@ -1,29 +1,73 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-
 import { toast } from "sonner";
 import { useCheckoutStore } from "../store/checkoutStore";
 import OtherNavbar from "../components/OtherNavbar";
 import Container from "../components/Container";
-
+import { useCreateOrder } from "../hooks/useCreateOrder";
+import { usePayment } from "../hooks/usePayment";
 
 const CheckoutPage = () => {
   const { form, setForm, items, clearCheckout } = useCheckoutStore();
+  const { mutate: createOrder, isPending: isCreatingOrder } = useCreateOrder();
+  const { mutate: initiatePayment, isPending: isInitiatingPayment } =
+    usePayment();
+
+  const isPending = isCreatingOrder || isInitiatingPayment;
 
   const subtotal = items.reduce(
     (sum, item) => sum + item.price * item.quantity,
     0,
   );
 
+  const handlePaystack = () => {
+    if (items.length === 0) return toast.error("Cart is empty");
+    if (
+      form.name.trim() == "" ||
+      form.address.trim() == "" ||
+      form.contact.trim() === "" ||
+      form.state.trim() === ""
+    ) {
+      return toast.error("Please fill the checkout form");
+    }
+
+    const payload = {
+      name: form.name,
+      contact: form.contact,
+      address: form.address,
+      state: form.state,
+      items: items.map((item) => ({
+        productId: item.id,
+        size: item.size.trim(),
+        quantity: item.quantity,
+      })),
+    };
+
+    createOrder(payload, {
+      onSuccess: (order) => {
+        toast.success("Order created");
+        initiatePayment(order.id);
+      },
+    });
+  };
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handlePaystack = () => {
-    toast.warning("Paystack unavailable, Pay via Whatsapp");
-  };
-
   const handleWhatsApp = () => {
+    if (items.length === 0) {
+      return toast.error("Cart is empty");
+    }
+    if (
+      form.name.trim() == "" ||
+      form.address.trim() == "" ||
+      form.contact.trim() === "" ||
+      form.state.trim() === ""
+    ) {
+      return toast.error("Please fill the checkout form");
+    }
+
     const whatsaappNumber = import.meta.env.VITE_WHATSAPP;
     const message = `TFAPPAREL Order Details:\nName: ${form.name}\nContact: ${form.contact}\nAddress: ${form.address}, ${form.state}\nItems:\n${items
       .map(
@@ -64,11 +108,16 @@ const CheckoutPage = () => {
 
               <div className="space-y-3 mt-8">
                 <button
+                  disabled={isPending}
                   type="button"
                   onClick={handlePaystack}
                   className="w-full bg-green-600 text-white py-3 rounded-full cursor-pointer font-semibold hover:bg-green-700 transition"
                 >
-                  Pay with Paystack
+                  {isCreatingOrder
+                    ? "Creating order..."
+                    : isInitiatingPayment
+                      ? "Opening payment..."
+                      : "Pay with Paystack"}
                 </button>
                 <button
                   type="button"
@@ -95,7 +144,6 @@ const CheckoutPage = () => {
                       <img
                         src={item.image}
                         alt={item.name}
-                        
                         className="absolute inset-0 w-full h-full object-cover rounded-md"
                       />
                     </div>

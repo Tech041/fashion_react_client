@@ -1,17 +1,18 @@
 import React, { useState } from "react";
 import { FiEye, FiEyeOff } from "react-icons/fi";
-import { useSignIn } from "../hooks/auth";
+import { useSignUp } from "../hooks/auth";
 import { Link } from "react-router-dom";
 
-const SignIn: React.FC = () => {
+const SignUp: React.FC = () => {
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const { mutate, isPending } = useSignIn();
+  const { mutate, isPending } = useSignUp();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    mutate({ email, password });
+    mutate({ name, email, password });
   };
 
   return (
@@ -20,7 +21,19 @@ const SignIn: React.FC = () => {
         onSubmit={handleSubmit}
         className="bg-white rounded-lg p-8 w-full max-w-sm shadow-md"
       >
-        <h1 className="text-2xl font-bold mb-6 text-center">Login</h1>
+        <h1 className="text-2xl font-bold mb-6 text-center">Register</h1>
+
+        <div className="mb-4">
+          <label className="block text-gray-700 mb-2">Name</label>
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="w-full px-3 py-2 border rounded-2xl focus:outline-none"
+            placeholder="Enter your name"
+            required
+          />
+        </div>
 
         <div className="mb-4">
           <label className="block text-gray-700 mb-2">Email</label>
@@ -29,7 +42,7 @@ const SignIn: React.FC = () => {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className="w-full px-3 py-2 border rounded-2xl focus:outline-none"
-            placeholder="Enter your Email"
+            placeholder="Enter your email"
             required
           />
         </div>
@@ -60,9 +73,9 @@ const SignIn: React.FC = () => {
           {isPending ? "Signing In..." : "Sign In"}
         </button>
         <div className="flex items-center justify-center gap-3 mt-2 text-xs">
-          <span className="">Do not have account?</span>{" "}
-          <Link className="text-blue-700" to={"/sign-up"}>
-            Register
+          <span className="">Have account?</span>{" "}
+          <Link className="text-blue-700" to={"/sign-in"}>
+            Login
           </Link>
         </div>
       </form>
@@ -70,4 +83,4 @@ const SignIn: React.FC = () => {
   );
 };
 
-export default SignIn;
+export default SignUp;
